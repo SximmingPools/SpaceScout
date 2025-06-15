@@ -44,6 +44,7 @@ last_A = 0
 last_B = 0
 last_A_time = 0
 last_B_time = 0
+last_event_time = 0
 DEBOUNCE = 1  # seconds
 count = 0
 
@@ -65,7 +66,7 @@ try:
             except Exception:
                 continue  # skip malformed lines
 
-            if A == 1 and last_B == 1 and (now - last_B_time) < DEBOUNCE:
+            if A == 1 and last_B == 1 and (now - last_B_time) < DEBOUNCE and (now - last_event_time) > 1:
                 count = max(count - 1, 0)
                 print(f"EXIT → {count}")
                 session_ref.update({
@@ -74,8 +75,9 @@ try:
                     "lastUpdate": timestamp
                 })
                 log_ref.push({"timestamp": timestamp, "type": "EXIT"})
+                last_event_time = now
 
-            elif B == 1 and last_A == 1 and (now - last_A_time) < DEBOUNCE:
+            elif B == 1 and last_A == 1 and (now - last_A_time) < DEBOUNCE and (now - last_event_time) > 1:
                 count += 1
                 print(f"ENTER → {count}")
                 session_ref.update({
@@ -84,6 +86,7 @@ try:
                     "lastUpdate": timestamp
                 })
                 log_ref.push({"timestamp": timestamp, "type": "ENTER"})
+                last_event_time = now
 
             last_A = A
             last_B = B

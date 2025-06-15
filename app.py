@@ -79,6 +79,7 @@ if event_data:
     # Crowdiness over time
     df["count_change"] = df["type"].apply(lambda x: 1 if x == "ENTER" else -1)
     df["count"] = df["count_change"].cumsum()
+    df["count"] = df["count"].clip(lower=0)
 
     st.subheader("📈 Room Usage Over Time")
     st.line_chart(df.set_index("timestamp")["count"])
