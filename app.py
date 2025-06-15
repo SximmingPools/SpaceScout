@@ -3,10 +3,13 @@ import firebase_admin
 from firebase_admin import credentials, db
 from datetime import datetime
 import pandas as pd
+import json
 
 # --- Firebase Setup ---
 if not firebase_admin._apps:
-    cred = credentials.Certificate("serviceAccountKey.json")
+   # for local: cred = credentials.Certificate("serviceAccountKey.json")
+    cred = credentials.Certificate(json.loads(st.secrets["firebase"].to_json()))
+
     firebase_admin.initialize_app(cred, {
         'databaseURL': 'https://campus-spacescout-default-rtdb.europe-west1.firebasedatabase.app/'
     })
