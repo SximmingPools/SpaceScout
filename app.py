@@ -72,8 +72,8 @@ event_data = log_ref.get()
 
 if event_data:
     events = [
-        {"timestamp": v["timestamp"], "type": v["type"]}
-        for k, v in event_data.items()
+    {"timestamp": v["timestamp"], "type": v["type"], "count": v.get("count", None)}
+    for k, v in event_data.items()
     ]
     df = pd.DataFrame(events)
     df["timestamp"] = pd.to_datetime(df["timestamp"])
