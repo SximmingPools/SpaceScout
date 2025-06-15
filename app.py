@@ -80,8 +80,7 @@ if event_data:
     df = df.sort_values("timestamp")
 
     # Crowdiness over time
-    df["count"] = df["count"].astype(int)  # Read the actual count value
-
+    df["count"] = df["count"].astype(int)
     st.subheader("📈 Room Usage Over Time")
     st.line_chart(df.set_index("timestamp")["count"])
 
