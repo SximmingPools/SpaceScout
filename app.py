@@ -8,7 +8,8 @@ import json
 # --- Firebase Setup ---
 if not firebase_admin._apps:
    # for local: cred = credentials.Certificate("serviceAccountKey.json")
-    cred = credentials.Certificate(json.loads(st.secrets["firebase"].to_json()))
+    cred = credentials.Certificate(dict(st.secrets["firebase"]))
+
 
     firebase_admin.initialize_app(cred, {
         'databaseURL': 'https://campus-spacescout-default-rtdb.europe-west1.firebasedatabase.app/'
