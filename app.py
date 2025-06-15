@@ -1,4 +1,4 @@
-""import streamlit as st
+import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, db
 from datetime import datetime
@@ -90,4 +90,4 @@ if event_data:
     st.dataframe(df_display, use_container_width=True)
 
 else:
-    st.info("ℹ️ No activity history available.")"}]}
+    st.info("ℹ️ No activity history available.")
