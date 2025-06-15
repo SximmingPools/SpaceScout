@@ -31,6 +31,9 @@ session_ref = db.reference(f"sessions/{room_id}")
 info_ref = db.reference(f"room_info/{room_id}")
 log_ref = db.reference(f"logs/{room_id}")
 
+# Get display names
+room_info_data = info_ref.get() or {}
+
 # --- Live Updates ---
 st_autorefresh(interval=10 * 1000, key="auto-refresh")
 
@@ -77,9 +80,7 @@ if event_data:
     df = df.sort_values("timestamp")
 
     # Crowdiness over time
-    df["count_change"] = df["type"].apply(lambda x: 1 if x == "ENTER" else -1)
-    df["count"] = df["count_change"].cumsum()
-    df["count"] = df["count"].clip(lower=0)
+    df["count"] = df["count"].astype(int)  # Read the actual count value
 
     st.subheader("📈 Room Usage Over Time")
     st.line_chart(df.set_index("timestamp")["count"])
