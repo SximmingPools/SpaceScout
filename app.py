@@ -1,10 +1,10 @@
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 import firebase_admin
 from firebase_admin import credentials, db
 from datetime import datetime
 import pandas as pd
 import json
-
 # --- Firebase Setup ---
 if not firebase_admin._apps:
     cred = credentials.Certificate(dict(st.secrets["firebase"]))
@@ -32,7 +32,7 @@ info_ref = db.reference(f"room_info/{room_id}")
 log_ref = db.reference(f"logs/{room_id}")
 
 # --- Live Updates ---
-st_autorefresh = st.experimental_rerun
+st_autorefresh(interval=10 * 1000, key="auto-refresh")
 
 # --- Fetch Room Data ---
 session_data = session_ref.get()
