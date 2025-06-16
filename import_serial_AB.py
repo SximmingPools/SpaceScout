@@ -15,7 +15,7 @@ firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://campus-spacescout-default-rtdb.europe-west1.firebasedatabase.app/'
 })
 
-room_id = "Room101"
+room_id = "Digital Innovation Lab"
 info_ref = db.reference(f"room_info/{room_id}")   # Static info (not touched)
 session_ref = db.reference(f"sessions/{room_id}")  # Live data
 log_ref = db.reference(f"logs/{room_id}")          # Session log
@@ -74,7 +74,7 @@ try:
                     "lastEvent": "EXIT",
                     "lastUpdate": timestamp
                 })
-                log_ref.push({"timestamp": timestamp, "type": "EXIT"})
+                log_ref.push({"timestamp": timestamp, "type": "EXIT", "count": count})
                 last_event_time = now
 
             elif B == 1 and last_A == 1 and (now - last_A_time) < DEBOUNCE and (now - last_event_time) > 1:
@@ -85,7 +85,7 @@ try:
                     "lastEvent": "ENTER",
                     "lastUpdate": timestamp
                 })
-                log_ref.push({"timestamp": timestamp, "type": "ENTER"})
+                log_ref.push({"timestamp": timestamp, "type": "ENTER", "count": count})
                 last_event_time = now
 
             last_A = A
