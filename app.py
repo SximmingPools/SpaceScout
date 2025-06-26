@@ -5,8 +5,8 @@ import firebase_admin
 from firebase_admin import credentials, db
 import folium
 from geopy.distance import geodesic
-import geocoder
 import pandas as pd
+from streamlit_js_eval import get_geolocation
 
 # --- Firebase Setup ---
 if not firebase_admin._apps:
@@ -16,18 +16,18 @@ if not firebase_admin._apps:
     })
 
 # --- Constants ---
-DEFAULT_CENTER = [53.5669, 9.9839]  # Uni Hamburg main campus
+DEFAULT_CENTER = [53.56548784525446, 9.984950800725397]  # Your presentation location
 
 # --- Page Setup ---
 st.set_page_config(page_title="🦉 SpaceScout", layout="wide")
 st.title("🗺️ SpaceScout – Live Room Occupancy Map")
 st_autorefresh(interval=15 * 1000, key="auto_refresh")
 
-# --- Get user location ---
-try:
-    g = geocoder.ip("me")
-    user_latlng = g.latlng or DEFAULT_CENTER
-except:
+# --- Get user location from browser ---
+loc = get_geolocation()
+if loc and loc.get("latitude") and loc.get("longitude"):
+    user_latlng = [loc["latitude"], loc["longitude"]]
+else:
     user_latlng = DEFAULT_CENTER
 
 # --- Firebase Refs ---
@@ -71,7 +71,7 @@ for room in room_entries:
     st.markdown(f"**{room['name']}** — {room['distance']} km — Crowdiness: {crowdiness_label}")
 
 # --- Build Map ---
-m = folium.Map(location=[selected_room["lat"], selected_room["lng"]], zoom_start=17, control_scale=True)
+m = folium.Map(location=[selected_room["lat"], selected_room["lng"]], zoom_start=19, control_scale=True)
 
 # User marker
 folium.Marker(
