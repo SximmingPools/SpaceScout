@@ -60,15 +60,26 @@ for room_id, room in rooms_data.items():
 # --- Sort by crowdiness then distance ---
 room_entries.sort(key=lambda x: (x['crowdiness'] if x['crowdiness'] != -1 else 999, x['distance']))
 
-# --- Room Selection UI ---
-selected_room_id = st.selectbox("📋 Select Room", [r["id"] for r in room_entries], format_func=lambda x: next(r['name'] for r in room_entries if r['id'] == x))
-selected_room = next(r for r in room_entries if r['id'] == selected_room_id)
+# --- Room Selection Logic ---
+if "selected_room_id" not in st.session_state:
+    st.session_state.selected_room_id = room_entries[0]["id"] if room_entries else None
 
-# --- Info List ---
+# --- Update selection based on button click ---
+def set_selected_room(room_id):
+    st.session_state.selected_room_id = room_id
+
+# --- Room Selection UI ---
 st.subheader("📍 Nearby Rooms")
 for room in room_entries:
     crowdiness_label = f"{room['crowdiness']:.2f}" if room['crowdiness'] != -1 else "Offline"
-    st.markdown(f"**{room['name']}** — {room['distance']} km — Crowdiness: {crowdiness_label}")
+    col1, col2 = st.columns([4, 1])
+    with col1:
+        st.markdown(f"**{room['name']}** — {room['distance']} km — Crowdiness: {crowdiness_label}")
+    with col2:
+        if st.button("View", key=f"view_{room['id']}"):
+            set_selected_room(room['id'])
+
+selected_room = next(r for r in room_entries if r['id'] == st.session_state.selected_room_id)
 
 # --- Build Map ---
 m = folium.Map(location=[selected_room["lat"], selected_room["lng"]], zoom_start=19, control_scale=True)
@@ -95,7 +106,6 @@ for room in room_entries:
     <b>{room['name']}</b><br>
     Distance: {room['distance']} km<br>
     Crowdiness: {room['crowdiness'] if room['crowdiness'] != -1 else 'Offline'}<br>
-    <a href='#' onclick=\"window.location.search='?room={room['id']}'\">View Details</a>
     """
 
     folium.Marker(
