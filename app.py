@@ -71,7 +71,7 @@ for room in room_entries:
     st.markdown(f"**{room['name']}** — {room['distance']} km — Crowdiness: {crowdiness_label}")
 
 # --- Build Map ---
-m = folium.Map(location=selected_room["lat"], zoom_start=17, control_scale=True)
+m = folium.Map(location=[selected_room["lat"], selected_room["lng"]], zoom_start=17, control_scale=True)
 
 # User marker
 folium.Marker(
