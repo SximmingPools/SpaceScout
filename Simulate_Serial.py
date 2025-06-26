@@ -1,8 +1,8 @@
 import time
 import random
 
-# Choose between: "OVERCROWDED", "AVERAGE", "EMPTY"
-MODE = "EMPTY"
+# Choose between: "OVERCROWDED", "AVERAGE", "EMPTY", "CROWDED", "SPARSE"
+MODE = "CROWDED"
 
 def generate_fake_sensor_data():
     if MODE == "OVERCROWDED":
@@ -14,6 +14,16 @@ def generate_fake_sensor_data():
         motion = random.choices([0, 1], weights=[0.9, 0.1])[0]
         sound = round(random.gauss(32, 2), 1)
         co2 = round(random.gauss(420, 10), 1)
+
+    elif MODE == "SPARSE":
+        motion = random.choices([0, 1], weights=[0.85, 0.15])[0]
+        sound = round(random.gauss(36, 3), 1)
+        co2 = round(random.gauss(480, 20), 1)
+
+    elif MODE == "CROWDED":
+        motion = random.choices([0, 1], weights=[0.3, 0.7])[0]
+        sound = round(random.gauss(58, 4), 1)
+        co2 = round(random.gauss(950, 40), 1)
 
     else:  # AVERAGE
         motion = random.choices([0, 1], weights=[0.6, 0.4])[0]

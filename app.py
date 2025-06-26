@@ -72,12 +72,18 @@ def set_selected_room(room_id):
 st.subheader("📍 Nearby Rooms")
 for room in room_entries:
     crowdiness_label = f"{room['crowdiness']:.2f}" if room['crowdiness'] != -1 else "Offline"
-    col1, col2 = st.columns([4, 1])
-    with col1:
-        st.markdown(f"**{room['name']}** — {room['distance']} km — Crowdiness: {crowdiness_label}")
-    with col2:
-        if st.button("View", key=f"view_{room['id']}"):
-            set_selected_room(room['id'])
+    with st.container():
+        cols = st.columns([6, 1])
+        with cols[0]:
+            st.markdown(
+                f"<div style='display: flex; justify-content: space-between; align-items: center;'>"
+                f"<span><strong>{room['name']}</strong> — {room['distance']} km — Crowdiness: {crowdiness_label}</span>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+        with cols[1]:
+            if st.button("View", key=f"view_{room['id']}"):
+                set_selected_room(room['id'])
 
 selected_room = next(r for r in room_entries if r['id'] == st.session_state.selected_room_id)
 
