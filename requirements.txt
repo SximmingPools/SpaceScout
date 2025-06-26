@@ -2,3 +2,7 @@ streamlit
 firebase-admin
 pandas
 streamlit-autorefresh
+streamlit-folium
+folium
+geopy
+geocoder

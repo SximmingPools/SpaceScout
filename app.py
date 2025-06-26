@@ -1,10 +1,12 @@
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
+from streamlit_folium import folium_static
 import firebase_admin
 from firebase_admin import credentials, db
-from datetime import datetime
-import pandas as pd
-import json
+import folium
+from geopy.distance import geodesic
+import geocoder
+
 # --- Firebase Setup ---
 if not firebase_admin._apps:
     cred = credentials.Certificate(dict(st.secrets["firebase"]))
@@ -13,82 +15,79 @@ if not firebase_admin._apps:
     })
 
 # --- Page Setup ---
-st.set_page_config(page_title="📡 Campus Room Monitor", layout="centered")
-st.title("📡 Campus Room Monitor")
+st.set_page_config(page_title="🦉 SpaceScout", layout="wide")
+st.title("🗺️ SpaceScout – Live Room Occupancy Map")
 
-# --- Room Selector ---
-room_ids_ref = db.reference("sessions")
-available_rooms = list(room_ids_ref.get() or {})
+# --- Auto-refresh ---
+st_autorefresh(interval=15 * 1000, key="auto_refresh")
 
-if not available_rooms:
-    st.warning("No rooms found in database.")
-    st.stop()
+# --- User GPS Location ---
+try:
+    g = geocoder.ip("me")
+    user_latlng = g.latlng or [53.5665, 9.9846]
+except:
+    user_latlng = [53.5665, 9.9846]  # fallback
 
-room_id = st.selectbox("🏠 Select Room", available_rooms)
+# --- Firebase References ---
+rooms_ref = db.reference("rooms")
+live_ref = db.reference("live_data")
 
-# --- Data Refs ---
-session_ref = db.reference(f"sessions/{room_id}")
-info_ref = db.reference(f"room_info/{room_id}")
-log_ref = db.reference(f"logs/{room_id}")
+rooms_data = rooms_ref.get() or {}
+live_data = live_ref.get() or {}
 
-# Get display names
-room_info_data = info_ref.get() or {}
+# --- Map Init ---
+m = folium.Map(location=user_latlng, zoom_start=17, control_scale=True)
 
-# --- Live Updates ---
-st_autorefresh(interval=10 * 1000, key="auto-refresh")
+# --- Add User Location ---
+folium.Marker(
+    location=user_latlng,
+    popup="📍 You Are Here",
+    icon=folium.Icon(color="blue", icon="user")
+).add_to(m)
 
-# --- Fetch Room Data ---
-session_data = session_ref.get()
-info_data = info_ref.get()
+# --- Room Pins ---
+for room_id, room in rooms_data.items():
+    name = room.get("room_name", room_id)
+    coords = room.get("location", {})
+    lat, lng = coords.get("lat"), coords.get("lng")
 
-# --- Room Capacity ---
-max_capacity = info_data.get("max_capacity", 10) if info_data else 10
+    if not lat or not lng:
+        continue
 
-if session_data:
-    count = session_data.get("count", 0)
-    last_event = session_data.get("lastEvent", "—")
-    last_update = session_data.get("lastUpdate", "—").replace("T", " ")[:19]
+    # Get live status
+    crowd = live_data.get(room_id, {}).get("crowdiness_index", None)
+    status = "Offline"
+    color = "gray"
 
-    # 🟦 Main Card
-    st.metric(label="👥 Current Occupancy", value=f"{count} / {max_capacity}")
+    if crowd is not None:
+        status = f"Crowdiness: {crowd:.2f}"
+        if crowd < 0.3:
+            color = "green"
+        elif crowd < 0.6:
+            color = "orange"
+        else:
+            color = "red"
 
-    # 🔴 Capacity Alert
-    if count >= max_capacity:
-        st.error("🚫 Room is full!")
-    else:
-        st.success("✅ Space Available")
+    popup_html = f"""
+    <b>{name}</b><br>
+    <i>{status}</i><br>
+    <a href="#{room_id}">View Details</a>
+    """
 
-    # 📊 Capacity Progress
-    st.progress(min(count / max_capacity, 1.0))
+    folium.Marker(
+        location=[lat, lng],
+        popup=folium.Popup(popup_html, max_width=250),
+        icon=folium.Icon(color=color, icon="info-sign")
+    ).add_to(m)
 
-    st.write(f"**🕒 Last Event:** {last_event}")
-    st.write(f"**📅 Last Updated:** {last_update}")
-else:
-    st.warning("⚠️ No session data for this room.")
-    st.stop()
+# --- Display Map ---
+folium_static(m, width=1000, height=600)
 
-# --- Event Log & Visualization ---
-event_data = log_ref.get()
+st.markdown("---")
 
-if event_data:
-    events = [
-    {"timestamp": v["timestamp"], "type": v["type"], "count": v.get("count", None)}
-    for k, v in event_data.items()
-    ]
-    df = pd.DataFrame(events)
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
-    df = df.sort_values("timestamp")
+# --- Room Details Selector ---
+selected = st.selectbox("📋 Select Room to View History", list(rooms_data.keys()))
+st.subheader(f"📊 Historical Data for: {rooms_data[selected]['room_name']}")
 
-    # Crowdiness over time
-    df["count"] = df["count"].astype(int)
-    st.subheader("📈 Room Usage Over Time")
-    st.line_chart(df.set_index("timestamp")["count"])
-
-    # Log-style event table
-    st.subheader("📜 Recent Activity Log")
-    df_display = df.sort_values("timestamp", ascending=False).head(10)
-    df_display["timestamp"] = df_display["timestamp"].dt.strftime("%Y-%m-%d %H:%M:%S")
-    st.dataframe(df_display, use_container_width=True)
-
-else:
-    st.info("ℹ️ No activity history available.")
+# Optionally pull session history for selected room here...
+st.info("🚧 Historical chart coming next.")

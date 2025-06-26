@@ -1,45 +1,33 @@
 import time
 import random
 
-class SimulatedSerial:
-    def __init__(self, delay=0.2):
-        self.delay = delay
-        self.state = {"A": 0, "B": 0}
-        self.sticky_timer = {"A": 0, "B": 0}
+# Choose between: "OVERCROWDED", "AVERAGE", "EMPTY"
+MODE = "EMPTY"
 
-    def readline(self):
-        time.sleep(self.delay)
+def generate_fake_sensor_data():
+    if MODE == "OVERCROWDED":
+        motion = random.choices([0, 1], weights=[0.1, 0.9])[0]
+        sound = round(random.gauss(65, 4), 1)
+        co2 = round(random.gauss(1100, 40), 1)
 
-        for sensor in ["A", "B"]:
-            # If sensor is active and timer is still running, keep it at 1
-            if self.state[sensor] == 1 and self.sticky_timer[sensor] > 0:
-                self.sticky_timer[sensor] -= 1
-                continue
+    elif MODE == "EMPTY":
+        motion = random.choices([0, 1], weights=[0.9, 0.1])[0]
+        sound = round(random.gauss(32, 2), 1)
+        co2 = round(random.gauss(420, 10), 1)
 
-            roll = random.random()
+    else:  # AVERAGE
+        motion = random.choices([0, 1], weights=[0.6, 0.4])[0]
+        sound = round(random.gauss(45 if motion == 0 else 55, 4), 1)
+        co2 = round(random.gauss(700 if motion == 0 else 850, 40), 1)
 
-            if self.state[sensor] == 0:
-                # If A is active, increase the chance for B to simulate "ENTRY"
-                if sensor == "B" and self.state["A"] == 1:
-                    chance_to_trigger = 0.5
-                else:
-                    chance_to_trigger = 0.2
+    # Clamp values
+    sound = min(max(sound, 30.0), 75.0)
+    co2 = min(max(co2, 400.0), 1200.0)
 
-                if roll < chance_to_trigger:
-                    self.state[sensor] = 1
-                    self.sticky_timer[sensor] = random.randint(1, 3)
+    return f"M:{motion};S:{sound};C:{co2}"
 
-            else:
-                # 30% chance to go back to 0
-                if roll < 0.3:
-                    self.state[sensor] = 0
-
-        line = f"A:{self.state['A']};B:{self.state['B']}\n"
-        return line.encode("utf-8")
-
-    @property
-    def in_waiting(self):
-        return True
-
-    def close(self):
-        print("Simulated serial connection closed.")
+if __name__ == "__main__":
+    while True:
+        line = generate_fake_sensor_data()
+        print(line, flush=True)
+        time.sleep(1)
