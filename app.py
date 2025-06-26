@@ -6,7 +6,7 @@ from firebase_admin import credentials, db
 import folium
 from geopy.distance import geodesic
 import pandas as pd
-from streamlit_js_eval import get_geolocation
+from streamlit_js_eval import streamlit_js_eval
 
 # --- Firebase Setup ---
 if not firebase_admin._apps:
@@ -24,7 +24,7 @@ st.title("🗺️ SpaceScout – Live Room Occupancy Map")
 st_autorefresh(interval=15 * 1000, key="auto_refresh")
 
 # --- Get user location from browser ---
-loc = get_geolocation()
+loc = streamlit_js_eval(js_expressions="navigator.geolocation.getCurrentPosition((pos) => { return { latitude: pos.coords.latitude, longitude: pos.coords.longitude }; })", key="get_user_location")
 if loc and loc.get("latitude") and loc.get("longitude"):
     user_latlng = [loc["latitude"], loc["longitude"]]
 else:
