@@ -7,6 +7,7 @@ import folium
 from geopy.distance import geodesic
 import pandas as pd
 from streamlit_js_eval import streamlit_js_eval
+import altair as alt
 
 # --- Firebase Setup ---
 if not firebase_admin._apps:
@@ -145,7 +146,22 @@ if sessions:
         df["smoothed"] = df["crowdiness_index"].rolling(window=3, min_periods=1).mean()
         st.markdown("### ⏳ Crowdiness Over Time")
 
-        st.line_chart(df.set_index("time_label")["crowdiness_index"])
+        st.markdown("### ⏳ Crowdiness Over Time")
+
+        df["crowdiness_percent"] = df["crowdiness_index"] * 100
+        df["smoothed_percent"] = df["smoothed"] * 100
+
+        chart = alt.Chart(df).mark_line(point=True).encode(
+            x=alt.X("time_label:N", title="Time"),
+            y=alt.Y("crowdiness_percent:Q", title="Crowdiness", axis=alt.Axis(format="%")),
+            tooltip=[
+                alt.Tooltip("time_label:N", title="Time"),
+                alt.Tooltip("crowdiness_percent:Q", title="Crowdiness", format=".1f"),
+                alt.Tooltip("smoothed_percent:Q", title="Smoothed", format=".1f")
+            ]
+        ).properties(width=700, height=300)
+
+        st.altair_chart(chart, use_container_width=True)
 
         with st.expander("📂 Raw Historical Data", expanded=False):
             st.dataframe(df[["timestamp", "motion_rate", "avg_sound", "avg_co2", "crowdiness_index"]])
