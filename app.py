@@ -148,12 +148,12 @@ if sessions:
 
         st.markdown("### ⏳ Crowdiness Over Time")
 
-        df["crowdiness_percent"] = df["crowdiness_index"] * 100
-        df["smoothed_percent"] = df["smoothed"] * 100
+        df["crowdiness_percent"] = df["crowdiness_index"]
+        df["smoothed_percent"] = df["smoothed"]
 
         chart = alt.Chart(df).mark_line(point=True).encode(
             x=alt.X("time_label:N", title="Time"),
-            y=alt.Y("crowdiness_percent:Q", title="Crowdiness", axis=alt.Axis(format="%")),
+            y=alt.Y("crowdiness_percent:Q", title="Crowdiness", axis=alt.Axis(format=".0%")),
             tooltip=[
                 alt.Tooltip("time_label:N", title="Time"),
                 alt.Tooltip("crowdiness_percent:Q", title="Crowdiness", format=".1f"),
