@@ -7,3 +7,6 @@ folium
 geopy
 geocoder
 streamlit-js-eval
+scikit-learn
+matplotlib
+joblib

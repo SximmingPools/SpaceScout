@@ -17,8 +17,8 @@ def generate_fake_sensor_data():
 
     elif MODE == "SPARSE":
         motion = random.choices([0, 1], weights=[0.85, 0.15])[0]
-        sound = round(random.gauss(36, 3), 1)
-        co2 = round(random.gauss(480, 20), 1)
+        sound = round(random.gauss(40, 5), 1)
+        co2 = round(random.gauss(500, 20), 1)
 
     elif MODE == "CROWDED":
         motion = random.choices([0, 1], weights=[0.3, 0.7])[0]

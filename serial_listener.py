@@ -4,6 +4,10 @@ import pandas as pd
 import time
 from datetime import datetime
 from collections import deque
+import joblib
+
+# ML model load
+model = joblib.load("owl_model.pkl")
 
 # Rolling buffer (5 minutes at 1Hz = 300 entries)
 BUFFER_SECONDS = 300
@@ -24,14 +28,13 @@ def parse_line(line):
     except:
         return None
 
-def estimate_crowdiness(motion_rate, avg_sound, avg_co2):
-    # Normalize all to 0–1
-    m_norm = motion_rate
-    s_norm = (avg_sound - 30) / (75 - 30)  # 30–75 dB
-    c_norm = (avg_co2 - 400) / (1200 - 400)  # 400–1200 ppm
-
-    # Weighted average (tweak weights if needed)
-    return round((0.4 * m_norm + 0.3 * s_norm + 0.3 * c_norm), 3)
+def predict_crowdiness(motion_rate, avg_sound, avg_co2):
+    features = pd.DataFrame([{
+    "motion_rate": motion_rate,
+    "avg_sound": avg_sound,
+    "avg_co2": avg_co2}])
+    prediction = model.predict(features)[0]
+    return round(float(prediction), 3)
 
 def main():
     # Launch the simulation script
@@ -58,7 +61,7 @@ def main():
                 motion_rate = sum(motion_buffer) / len(motion_buffer)
                 avg_sound = sum(sound_buffer) / len(sound_buffer)
                 avg_co2 = sum(co2_buffer) / len(co2_buffer)
-                crowdiness = estimate_crowdiness(motion_rate, avg_sound, avg_co2)
+                crowdiness = predict_crowdiness(motion_rate, avg_sound, avg_co2)
 
                 row = {
                     "timestamp": datetime.now().isoformat(),
@@ -73,8 +76,7 @@ def main():
 
     except KeyboardInterrupt:
         print("Stopped. Appending to CSV...")
-        
-        #   Save collected dataset (append if file exists)
+
         csv_file = "crowdiness_dataset.csv"
         try:
             df_existing = pd.read_csv(csv_file)
@@ -84,7 +86,6 @@ def main():
 
         df_combined.to_csv(csv_file, index=False)
         print(f"✅ Appended {len(dataset)} rows. Total rows now: {len(df_combined)}")
-
 
 if __name__ == "__main__":
     main()

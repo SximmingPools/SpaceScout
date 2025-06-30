@@ -125,4 +125,30 @@ folium_static(m, width=1000, height=600)
 
 # --- Room Data Section ---
 st.subheader(f"📊 Details for: {selected_room['name']}")
-st.info("📈 Historical data and trends coming soon.")
+
+# --- Historical Session Data Viewer ---
+import matplotlib.pyplot as plt
+
+session_ref = db.reference(f"sessions/{selected_room['id']}")
+sessions = session_ref.get() or {}
+
+if sessions:
+    latest_key = sorted(sessions.keys())[-1]
+    data = sessions[latest_key].get("data", {})
+
+    if data:
+        df = pd.DataFrame(data.values())
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        df = df.sort_values("timestamp")
+
+        st.markdown("### ⏳ Crowdiness Over Time")
+
+        st.line_chart(df.set_index("timestamp")["crowdiness_index"])
+
+        with st.expander("📂 Raw Historical Data", expanded=False):
+            st.dataframe(df[["timestamp", "motion_rate", "avg_sound", "avg_co2", "crowdiness_index"]])
+    else:
+        st.warning("⚠️ No session data found for this room.")
+else:
+    st.warning("⚠️ No session history available.")
+
