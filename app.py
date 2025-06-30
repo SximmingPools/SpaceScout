@@ -139,11 +139,13 @@ if sessions:
     if data:
         df = pd.DataFrame(data.values())
         df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.sort_values("timestamp")
+        df["time_label"] = df["timestamp"].dt.strftime("%H:%M:%S")
 
+        df = df.sort_values("timestamp")
+        df["smoothed"] = df["crowdiness_index"].rolling(window=3, min_periods=1).mean()
         st.markdown("### ⏳ Crowdiness Over Time")
 
-        st.line_chart(df.set_index("timestamp")["crowdiness_index"])
+        st.line_chart(df.set_index("time_label")["crowdiness_index"])
 
         with st.expander("📂 Raw Historical Data", expanded=False):
             st.dataframe(df[["timestamp", "motion_rate", "avg_sound", "avg_co2", "crowdiness_index"]])
