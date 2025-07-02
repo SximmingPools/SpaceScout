@@ -44,18 +44,27 @@ def set_bg_image_local(img_path):
     with open(img_path, "rb") as img_file:
         encoded = base64.b64encode(img_file.read()).decode()
     st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background-image: url("data:image/jpg;base64,{encoded}");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    f"""
+    <style>
+    .stApp {{
+        background-image: url("data:image/jpg;base64,{encoded}");
+        background-size: cover;
+        background-position: center center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        filter: brightness(0.6) blur(2px);
+    }}
+
+    .main .block-container {{
+        background-color: rgba(0, 0, 0, 0.4);
+        border-radius: 12px;
+        padding: 1rem;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 set_bg_image_local("resources/Background.png")
 
 
