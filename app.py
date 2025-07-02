@@ -119,11 +119,13 @@ for room in room_entries:
             )
         with cols[1]:
             if st.button("🔍 View", key=f"view_{room['id']}"):
-                set_selected_room(room['id'])
-            if st.session_state.room_info_expanded.get(room['id']):
-                st.session_state.room_info_expanded[room['id']] = False
-            else:
-                st.session_state.room_info_expanded = {room['id']: True}
+                if st.session_state.room_info_expanded.get(room['id']):
+                    # Collapse the currently open room
+                    st.session_state.room_info_expanded = {}
+                else:
+                    # Collapse all and expand only this one
+                    st.session_state.room_info_expanded = {room['id']: True}
+                    set_selected_room(room['id'])
 
         # Show room details if selected
         if st.session_state.room_info_expanded.get(room['id']):
