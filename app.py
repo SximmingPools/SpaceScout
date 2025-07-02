@@ -139,6 +139,23 @@ for room in room_entries:
                     st.metric("👥 Estimated People Inside", f"{est_people} / {capacity}")
                 else:
                     st.markdown(f"👥 Capacity: **{capacity}** — Room is currently offline.")
+            # Details
+            def get_status_bar(value):
+                if value < 0.3:
+                    return "🟩 Low"
+                elif value < 0.6:
+                    return "🟧 Medium"
+                else:
+                    return "🟥 High"
+
+            st.markdown(f"**Current Crowdiness Level:** {get_status_bar(selected_room['crowdiness'])}")
+            # --- Room Meta Info ---
+            room_meta = rooms_data[room["id"]]
+            building = room_meta.get("building", "Unknown Building")
+            floor = room_meta.get("floor", "Unknown Floor")
+            rtype = room_meta.get("type", "Unknown Type")
+            st.markdown(f"🏢 **Building**: {building} &nbsp;&nbsp; 🧭 **Floor**: {floor} &nbsp;&nbsp; 🪑 **Type**: {rtype}")
+
             st.markdown("---")
 
 # Ensure correct selection persists
@@ -182,20 +199,6 @@ st.markdown("---")
 st.markdown("### 🗺️ Interactive Map View")
 
 folium_static(m, width=1000, height=600)
-
-# --- Room Data Section ---
-st.subheader(f"📊 Details for: {selected_room['name']}")
-
-# --- Status Bar ---
-def get_status_bar(value):
-    if value < 0.3:
-        return "🟩 Low"
-    elif value < 0.6:
-        return "🟧 Medium"
-    else:
-        return "🟥 High"
-
-st.markdown(f"**Current Crowdiness Level:** {get_status_bar(selected_room['crowdiness'])}")
 
 
 # --- Historical Session Data Viewer ---
