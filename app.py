@@ -41,8 +41,10 @@ st_autorefresh(interval=15 * 1000, key="auto_refresh")
 # --- Background Image ---
 
 def set_bg_image_local(img_path):
+    import os
+    import base64
 
-    abs_path = os.path.join(os.path.dirname(__file__), img_path)
+    abs_path = os.path.join(os.getcwd(), img_path)  # ← change is here
     if os.path.exists(abs_path):
         with open(abs_path, "rb") as img_file:
             b64_img = base64.b64encode(img_file.read()).decode()
