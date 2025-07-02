@@ -47,23 +47,20 @@ def set_bg_image_local(img_path):
     f"""
     <style>
     .stApp {{
-        background-image: url("data:image/jpg;base64,{encoded}");
-        background-size: cover;
-        background-position: center center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        filter: brightness(0.6) blur(2px);
+        background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                    url("data:image/jpg;base64,{encoded}") center center / cover no-repeat fixed;
     }}
 
     .main .block-container {{
-        background-color: rgba(0, 0, 0, 0.4);
-        border-radius: 12px;
+        background-color: rgba(0, 0, 0, 0.3);
         padding: 1rem;
+        border-radius: 12px;
     }}
     </style>
     """,
     unsafe_allow_html=True
 )
+
 
 set_bg_image_local("resources/Background.png")
 
