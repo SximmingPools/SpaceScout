@@ -138,7 +138,7 @@ if "capacity" in rooms_data[selected_room["id"]]:
 
 # --- Build Map ---
 m = folium.Map(location=[selected_room["lat"], selected_room["lng"]], zoom_start=19, control_scale=True)
-
+st.markdown("<a name='interactive-map-view'></a>", unsafe_allow_html=True)
 # User marker
 folium.Marker(
     location=user_latlng,
@@ -193,6 +193,7 @@ st.markdown(f"**Current Crowdiness Level:** {get_status_bar(selected_room['crowd
 # --- Historical Session Data Viewer ---
 import matplotlib.pyplot as plt
 
+st.markdown("<a name='raw-historical-data'></a>", unsafe_allow_html=True)
 session_ref = db.reference(f"sessions/{selected_room['id']}")
 sessions = session_ref.get() or {}
 
@@ -221,6 +222,7 @@ if sessions:
         df["smoothed_percent"] = df["smoothed"]
 
         # Session Stats
+        st.markdown("<a name='session-statistics'></a>", unsafe_allow_html=True)
         st.markdown("### 📈 Session Statistics")
         col1, col2, col3 = st.columns(3)
         col1.metric("📉 Min", f"{df['crowdiness_index'].min():.0%}")
