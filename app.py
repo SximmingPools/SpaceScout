@@ -19,8 +19,19 @@ if not firebase_admin._apps:
 # --- Constants ---
 DEFAULT_CENTER = [53.56548784525446, 9.984950800725397]  # Your presentation location
 
+# --- Color Codes ---
+def get_crowdiness_color(value):
+    if value == -1:
+        return "⚫"
+    elif value < 0.3:
+        return "🟢"
+    elif value < 0.6:
+        return "🟠"
+    else:
+        return "🔴"
+
 # --- Page Setup ---
-st.set_page_config(page_title="🦉 SpaceScout", layout="wide")
+st.set_page_config(page_title="🦉 SpaceScout", layout="centered")
 st.title("🗺️ SpaceScout – Live Room Occupancy Map")
 st_autorefresh(interval=15 * 1000, key="auto_refresh")
 
@@ -70,9 +81,12 @@ def set_selected_room(room_id):
     st.session_state.selected_room_id = room_id
 
 # --- Room Selection UI ---
-st.subheader("📍 Nearby Rooms")
+st.subheader("📡 Real-Time Room Radar")
+st.markdown("Pick a room to scout 👇")
+
 for room in room_entries:
-    crowdiness_label = f"{room['crowdiness']:.2f}" if room['crowdiness'] != -1 else "Offline"
+    color_emoji = get_crowdiness_color(room['crowdiness'])
+    crowdiness_label = f"{color_emoji} {room['crowdiness']:.0%}" if room['crowdiness'] != -1 else "⚫ Offline"
     with st.container():
         cols = st.columns([6, 1])
         with cols[0]:
@@ -83,8 +97,9 @@ for room in room_entries:
                 unsafe_allow_html=True
             )
         with cols[1]:
-            if st.button("View", key=f"view_{room['id']}"):
+            if st.button("🔍 View", key=f"view_{room['id']}"):
                 set_selected_room(room['id'])
+
 
 selected_room = next(r for r in room_entries if r['id'] == st.session_state.selected_room_id)
 
@@ -122,6 +137,9 @@ for room in room_entries:
     ).add_to(m)
 
 # --- Show Map ---
+st.markdown("---")
+st.markdown("### 🗺️ Interactive Map View")
+
 folium_static(m, width=1000, height=600)
 
 # --- Room Data Section ---
@@ -158,6 +176,7 @@ if sessions:
         df["smoothed_percent"] = df["smoothed"]
 
         # Session Stats
+        st.markdown("### 📈 Session Statistics")
         col1, col2, col3 = st.columns(3)
         col1.metric("📉 Min", f"{df['crowdiness_index'].min():.0%}")
         col2.metric("📈 Max", f"{df['crowdiness_index'].max():.0%}")
