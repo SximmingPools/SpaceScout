@@ -100,14 +100,19 @@ def set_selected_room(room_id):
 st.subheader("📡 Real-Time Room Radar")
 st.markdown("Pick a room to scout 👇")
 
+if "room_info_expanded" not in st.session_state:
+    st.session_state.room_info_expanded = {}
+
 for room in room_entries:
     color_emoji = get_crowdiness_color(room['crowdiness'])
     crowdiness_label = f"{color_emoji} {room['crowdiness']:.0%}" if room['crowdiness'] != -1 else "⚫ Offline"
+    row_style = "color: grey;" if room['crowdiness'] == -1 else ""
+
     with st.container():
         cols = st.columns([6, 1])
         with cols[0]:
             st.markdown(
-                f"<div style='display: flex; justify-content: space-between; align-items: center;'>"
+                f"<div style='display: flex; justify-content: space-between; align-items: center; {row_style}'>"
                 f"<span><strong>{room['name']}</strong> — {room['distance']} km — Crowdiness: {crowdiness_label}</span>"
                 f"</div>",
                 unsafe_allow_html=True
@@ -115,26 +120,29 @@ for room in room_entries:
         with cols[1]:
             if st.button("🔍 View", key=f"view_{room['id']}"):
                 set_selected_room(room['id'])
+                st.session_state.room_info_expanded = {room['id']: True}
 
+        # Show room details if selected
+        if st.session_state.room_info_expanded.get(room['id']):
+            # Room Image
+            image_path = f"resources/{room['id']}.jpg"
+            if os.path.exists(image_path):
+                st.image(image_path, caption=f"{room['name']}", use_column_width=True)
+            else:
+                st.info("📸 Room image not available.")
 
+            # Capacity + Estimated People
+            if "capacity" in rooms_data[room["id"]]:
+                capacity = rooms_data[room["id"]]["capacity"]
+                if room["crowdiness"] != -1:
+                    est_people = int(capacity * room["crowdiness"])
+                    st.metric("👥 Estimated People Inside", f"{est_people} / {capacity}")
+                else:
+                    st.markdown(f"👥 Capacity: **{capacity}** — Room is currently offline.")
+            st.markdown("---")
+
+# Ensure correct selection persists
 selected_room = next(r for r in room_entries if r['id'] == st.session_state.selected_room_id)
-
-# --- Room Image ---
-
-image_path = f"resources/{selected_room['id']}.jpg"
-if os.path.exists(image_path):
-    st.image(image_path, caption=f"{selected_room['name']}", use_column_width=True)
-else:
-    st.info("📸 Room image not available.")
-
-# --- Capacity ---
-
-if "capacity" in rooms_data[selected_room["id"]]:
-    capacity = rooms_data[selected_room["id"]]["capacity"]
-    if selected_room["crowdiness"] != -1:
-        est_people = int(capacity * selected_room["crowdiness"])
-        st.metric("👥 Estimated People Inside", f"{est_people} / {capacity}")
-
 
 # --- Build Map ---
 m = folium.Map(location=[selected_room["lat"], selected_room["lng"]], zoom_start=19, control_scale=True)
