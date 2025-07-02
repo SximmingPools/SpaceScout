@@ -41,23 +41,28 @@ st_autorefresh(interval=15 * 1000, key="auto_refresh")
 # --- Background Image ---
 
 def set_bg_image_local(img_path):
-    with open(img_path, "rb") as img_file:
-        encoded = base64.b64encode(img_file.read()).decode()
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background-image: url("data:image/jpg;base64,{encoded}");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-set_bg_image_local("resources/background.png")
 
+    abs_path = os.path.join(os.path.dirname(__file__), img_path)
+    if os.path.exists(abs_path):
+        with open(abs_path, "rb") as img_file:
+            b64_img = base64.b64encode(img_file.read()).decode()
+        st.markdown(
+            f"""
+            <style>
+            .stApp {{
+                background-image: url("data:image/png;base64,{b64_img}");
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        st.warning(f"⚠️ Background image not found at `{abs_path}`")
+
+set_bg_image_local("resources/background.png")
 
 # --- Get user location from browser ---
 loc = streamlit_js_eval(js_expressions="navigator.geolocation.getCurrentPosition((pos) => { return { latitude: pos.coords.latitude, longitude: pos.coords.longitude }; })", key="get_user_location")
