@@ -145,11 +145,23 @@ if sessions:
         df = df.sort_values("timestamp")
         df["smoothed"] = df["crowdiness_index"].rolling(window=3, min_periods=1).mean()
         st.markdown("### ⏳ Crowdiness Over Time")
-
-        st.markdown("### ⏳ Crowdiness Over Time")
+        
+       # Select Box (filter)
+        time_filter = st.selectbox("⏱️ Show Data From", ["Last 10 min", "Last 30 min", "All"])
+        now = pd.Timestamp.now()
+        if time_filter == "Last 10 min":
+            df = df[df["timestamp"] >= now - pd.Timedelta(minutes=10)]
+        elif time_filter == "Last 30 min":
+            df = df[df["timestamp"] >= now - pd.Timedelta(minutes=30)]
 
         df["crowdiness_percent"] = df["crowdiness_index"]
         df["smoothed_percent"] = df["smoothed"]
+
+        # Session Stats
+        col1, col2, col3 = st.columns(3)
+        col1.metric("📉 Min", f"{df['crowdiness_index'].min():.0%}")
+        col2.metric("📈 Max", f"{df['crowdiness_index'].max():.0%}")
+        col3.metric("📊 Avg", f"{df['crowdiness_index'].mean():.0%}")
 
         chart = alt.Chart(df).mark_line(point=True).encode(
             x=alt.X("time_label:N", title="Time"),
