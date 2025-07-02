@@ -148,7 +148,7 @@ for room in room_entries:
                 else:
                     return "🟥 High"
 
-            st.markdown(f"**Current Crowdiness Level:** {get_status_bar(selected_room['crowdiness'])}")
+            st.markdown(f"**Current Crowdiness Level:** {get_status_bar(room['crowdiness'])}")
             # --- Room Meta Info ---
             room_meta = rooms_data[room["id"]]
             building = room_meta.get("building", "Unknown Building")
