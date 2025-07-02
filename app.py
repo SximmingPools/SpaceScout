@@ -47,8 +47,8 @@ def set_bg_image_local(img_path):
     f"""
     <style>
     .stApp {{
-        background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
-                    url("data:image/jpg;base64,{encoded}") center center / cover no-repeat fixed;
+        background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), 
+                    url("data:image/jpg;base64,{encoded}") center bottom / contain no-repeat fixed;
     }}
 
     .main .block-container {{
