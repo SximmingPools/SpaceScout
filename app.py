@@ -8,6 +8,8 @@ from geopy.distance import geodesic
 import pandas as pd
 from streamlit_js_eval import streamlit_js_eval
 import altair as alt
+from PIL import Image
+import os
 
 # --- Firebase Setup ---
 if not firebase_admin._apps:
@@ -48,6 +50,16 @@ live_ref = db.reference("live_data")
 rooms_data = rooms_ref.get() or {}
 live_data = live_ref.get() or {}
 
+
+# --- Nav Header ---
+with st.container():
+    st.markdown("#### 🔗 Quick Access")
+    col1, col2, col3 = st.columns(3)
+    col1.markdown("[🗺️ Map](#interactive-map-view)")
+    col2.markdown("[📊 Stats](#session-statistics)")
+    col3.markdown("[📂 Raw Data](#raw-historical-data)")
+
+
 # --- Build room list with metadata ---
 room_entries = []
 for room_id, room in rooms_data.items():
@@ -76,9 +88,13 @@ room_entries.sort(key=lambda x: (x['crowdiness'] if x['crowdiness'] != -1 else 9
 if "selected_room_id" not in st.session_state:
     st.session_state.selected_room_id = room_entries[0]["id"] if room_entries else None
 
+    
+
 # --- Update selection based on button click ---
 def set_selected_room(room_id):
     st.session_state.selected_room_id = room_id
+
+
 
 # --- Room Selection UI ---
 st.subheader("📡 Real-Time Room Radar")
@@ -102,6 +118,23 @@ for room in room_entries:
 
 
 selected_room = next(r for r in room_entries if r['id'] == st.session_state.selected_room_id)
+
+# --- Room Image ---
+
+image_path = f"resources/{selected_room['id']}.jpg"
+if os.path.exists(image_path):
+    st.image(image_path, caption=f"{selected_room['name']}", use_column_width=True)
+else:
+    st.info("📸 Room image not available.")
+
+# --- Capacity ---
+
+if "capacity" in rooms_data[selected_room["id"]]:
+    capacity = rooms_data[selected_room["id"]]["capacity"]
+    if selected_room["crowdiness"] != -1:
+        est_people = int(capacity * selected_room["crowdiness"])
+        st.metric("👥 Estimated People Inside", f"{est_people} / {capacity}")
+
 
 # --- Build Map ---
 m = folium.Map(location=[selected_room["lat"], selected_room["lng"]], zoom_start=19, control_scale=True)
@@ -144,6 +177,18 @@ folium_static(m, width=1000, height=600)
 
 # --- Room Data Section ---
 st.subheader(f"📊 Details for: {selected_room['name']}")
+
+# --- Status Bar ---
+def get_status_bar(value):
+    if value < 0.3:
+        return "🟩 Low"
+    elif value < 0.6:
+        return "🟧 Medium"
+    else:
+        return "🟥 High"
+
+st.markdown(f"**Current Crowdiness Level:** {get_status_bar(selected_room['crowdiness'])}")
+
 
 # --- Historical Session Data Viewer ---
 import matplotlib.pyplot as plt
