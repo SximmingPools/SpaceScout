@@ -7,6 +7,8 @@ from firebase_admin import credentials, db
 from collections import deque
 from datetime import datetime
 import uuid
+import serial
+import random
 
 # CONFIG — change this as needed
 ROOM_ID = "room01"  # 🔁 Match with one of the static sample rooms
@@ -36,18 +38,30 @@ session_root.update({
     "started_at": datetime.now().isoformat()
 })
 
-# Start fake serial stream (or real later)
-process = subprocess.Popen(["python", "simulate_serial.py"], stdout=subprocess.PIPE, text=True)
+# Start fake serial stream
+# process = subprocess.Popen(["python", "simulate_serial.py"], stdout=subprocess.PIPE, text=True)
+
+# Start real serial stream
+ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+time.sleep(2)  # Allow Arduino time to reset
+
+def simulate_co2():
+    # Simulate plausible CO₂ values
+    return round(random.uniform(420, 700), 1)
 
 def parse_line(line):
     try:
         parts = line.strip().split(";")
         m = int(parts[0].split(":")[1])
         s = float(parts[1].split(":")[1])
-        c = float(parts[2].split(":")[1])
+        if len(parts) > 2:
+            c = float(parts[2].split(":")[1])
+        else:
+            c = simulate_co2()
         return m, s, c
     except:
         return None
+
 
 def predict_crowdiness(motion_rate, avg_sound, avg_co2):
     X = pd.DataFrame([{
@@ -62,7 +76,7 @@ last_push = time.time()
 
 try:
     while True:
-        line = process.stdout.readline()
+        line = ser.readline().decode('utf-8').strip()
         parsed = parse_line(line)
         if parsed:
             m, s, c = parsed
