@@ -42,7 +42,8 @@ session_root.update({
 # process = subprocess.Popen(["python", "simulate_serial.py"], stdout=subprocess.PIPE, text=True)
 
 # Start real serial stream
-ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+ser = serial.Serial('COM3', 9600, timeout=1)
+
 time.sleep(2)  # Allow Arduino time to reset
 
 def simulate_co2():
